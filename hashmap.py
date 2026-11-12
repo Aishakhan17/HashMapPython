@@ -26,7 +26,13 @@ class hashMap:
         self.printHashMap()
 
     def getKey(self, key):
-        pass
+        hashValue = self.getHashCode(key)
+        try:
+            targetBucket = self.hashtable[hashValue]
+            print(f"found key {key}, targetBucket is", {hashValue})
+            return targetBucket
+        except:
+            print("Key does not exist")
 
     def containsKey(self, key, bucket):
         for idx, (recordedKey, recordedValue) in enumerate(bucket):
@@ -35,7 +41,15 @@ class hashMap:
         return False
 
     def containsValue(self, value):
-        pass
+        for bucket in range(len(self.hashtable)):
+            for recordedKey, recordedValue in self.hashtable[bucket]:
+                if recordedValue == value:
+                    print(
+                        f"Found the value {recordedValue} and the corresponding key is {recordedKey} in bucket {bucket}"
+                    )
+                    return recordedValue
+                else:
+                    print("Value does not exist in the hashmap")
 
     def isEmpty(self):
         return self.size == 0
@@ -61,6 +75,8 @@ def main():
     newHashMap = hashMap(initialCapacity=50, loadFactor=0.75, size=10)
     newHashMap.addKeyValuePair("Ayesha", "Khan")
     newHashMap.printHashMap()
+    newHashMap.getKey("Ayesha")
+    newHashMap.containsValue("Khan")
 
 
 main()
