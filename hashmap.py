@@ -1,100 +1,86 @@
+from linkedlist import *
+
+
 class hashMap:
 
-    def __init__(self, initialCapacity, loadFactor, size):
-        self.initialCapacity = initialCapacity
+    def __init__(self, loadFactor, size, collisionHandlingMethod):
+        # self.initialCapacity = initialCapacity
         self.loadFactor = loadFactor
         self.initSize = size
         self.currentSize = 0
-        self.hashtable = [[] for _ in range(self.initSize)]
         self.backup = []
         self.resize = False
+        self.collisionHandlingMethod = collisionHandlingMethod
+        if self.collisionHandlingMethod == "SC":
+            self.initializeLinkedListTable()
+        else:
+            self.hashtable = [[] for _ in range(self.initSize)]
+
+    def initializeLinkedListTable(self):
+        self.hashtable = []
+        for _ in range(self.initSize):
+            llist = LinkedList()
+            self.hashtable.append(llist)
+        self.printHashMap()
 
     def addKeyValuePair(self, key, value):
-        hashedValue = self.getHashCodeOne(key)
+        hashedValue = self.getFirstHashCode(key)
         bucket = self.hashtable[hashedValue]
-
-        print("Checking if key exists in hashtable")
-        keyExists = self.containsKey(key, bucket)
-        if not keyExists:
-            print("Key doesn't exist. Adding it to hash map ")
-            bucket.append((key, value))
+        # print("bucket", bucket.head)
+        if self.collisionHandlingMethod == "SC":
+            print("Checking if key exists in hashtable")
+            if bucket.head == None:
+                print("Key does not exist. Adding it to Hashmap")
+                node = Node(key=key, value=value)
+                bucket.head = node
+            else:
+                print("There's a collision. Adding to linked list")
+                curr = bucket.head
+                while curr is not None:
+                    if curr.next == None:
+                        node = Node(key=key, value=value)
+                        curr.next = node
+                        break
+                    curr = curr.next
             self.currentSize += 1
-        else:
-            recordedValue, recordedIndex = keyExists
-            print(
-                f"Key exists in the hash table with corresponding value {recordedValue}. Updating value to {value}"
-            )
-            bucket[recordedIndex] = (key, value)
-            print("Values updated. Print to verify")
+
         self.checkForResizing()
         if self.resize:
             print("Load capacity exceeded, resizing hashmap, current hashmap is: ")
-            self.printHashMap()
             self.resizeHashMap()
-        self.printHashMap()
 
     def getKey(self, key):
-        hashValue = self.getHashCodeOne(key)
-        try:
-            targetBucket = self.hashtable[hashValue]
-            if targetBucket[0] == key:
-                print(f"found key {key}, targetBucket is", {hashValue})
-                return targetBucket
-        except:
-            print("Key does not exist. Would you like to add it? Y/N")
-            text = input()
-            if text.lower() == "yes" or text.lower() == "y":
-                try:
-                    print("Enter corresponding value for the key: ")
-                    inputValue = input()
-                    self.addKeyValuePair(key, str(inputValue))
-                    print("Added to hashmap")
-                except:
-                    print("There was an issue adding the key value pair")
-                    return False
-            elif text == "no" or text == "n":
-                print("Key not added as requested")
-            else:
-                print("There was an issue, try again!")
-
-    def containsKey(self, key, bucket):
-        for idx, (recordedKey, recordedValue) in enumerate(bucket):
-            if recordedKey == key:
-                return recordedValue, idx
-        return False
-
-    def containsValue(self, value):
-        for bucket in range(self.currentSize):
-            for recordedKey, recordedValue in self.hashtable[bucket]:
-                if recordedValue == value:
-                    print(
-                        f"Found the value {recordedValue} and the corresponding key is {recordedKey} in bucket {bucket}"
-                    )
-                    return recordedValue
-                else:
-                    print("Value does not exist in the hashmap")
+        for bucket in self.hashtable:
+            if bucket.head is not None:
+                curr = bucket.head
+                while curr is not None:
+                    if curr.key == key:
+                        return curr.key, curr.value
+                    curr = curr.next
 
     def checkForResizing(self):
         if self.currentSize / self.initSize >= self.loadFactor:
+            print("needs resizing")
             self.resize = True
 
     def resizeHashMap(self):
+        self.resize = False
         self.initSize *= 2
         self.backupExistingPairs()
-        print("self.initSize", self.initSize)
-        self.hashtable = [[] for _ in range(self.initSize)]
-        print("resized hashtable is: ", self.hashtable)
-        # self.reinsertExistingPairs()
-        # self.backup = []
-        # print("back up reset", self.backup)
+        self.initializeLinkedListTable()
+        self.currentSize = 0
+        self.reinsertExistingPairs()
+        self.backup = []
 
     def backupExistingPairs(self):
         print("Backing up existing pairs")
         for bucket in self.hashtable:
-            print("bucket", bucket, "len(bucket)", len(bucket))
-            if len(bucket) > 0:
-                self.backup.append(bucket)
-        print("Successfully backed up current hashmap data", self.backup)
+            if bucket.head is not None:
+                curr = bucket.head
+                while curr is not None:
+                    self.backup.append((curr.key, curr.value))
+                    curr = curr.next
+        print("Backed up successfully")
 
     def reinsertExistingPairs(self):
         print("Rehashing and reinserting current data from back up")
@@ -109,20 +95,21 @@ class hashMap:
         print("Current hashmap size is: ", self.currentSize)
         return self.currentSize
 
-    def getHashCodeOne(self, key):
-        print("hash(key)", hash(key))
+    def getFirstHashCode(self, key):
         hashedValue = hash(key) % self.initSize
-        print("hashedValue", hashedValue)
-
         return hashedValue
 
-    # def getHashCodeTwo(self, key):
-    #     hashedValue
-    #     print("second hash value")
-    #     return hashedValue
-
     def printHashMap(self):
-        print("self.hashtable", self.hashtable)
+        if self.collisionHandlingMethod == "SC":
+            for bucket in self.hashtable:
+                if bucket.head is not None:
+                    curr = bucket.head
+                    while curr.next is not None:
+                        print("curr.key", curr.key, "curr.value", curr.value)
+                        curr = curr.next
+
+        else:
+            print("self.hashtable", self.hashtable)
 
     def removeKey(self, key):
         print("remove key called")
@@ -143,7 +130,7 @@ class hashMap:
 
 
 def main():
-    newHashMap = hashMap(initialCapacity=50, loadFactor=0.75, size=10)
+    newHashMap = hashMap(loadFactor=0.75, size=10, collisionHandlingMethod="SC")
     newHashMap.getSize()
     keyValuePairs = [
         ("Ayesha", "Khan"),
@@ -153,6 +140,7 @@ def main():
         ("John", "Smith"),
         ("Abby", "Smith"),
         ("Emma", "Airey"),
+        ("Mona", "Lisa"),
     ]
     for entry in keyValuePairs:
         print("entry", entry)
@@ -160,7 +148,11 @@ def main():
         value = entry[-1]
         newHashMap.addKeyValuePair(key, value)
     newHashMap.printHashMap()
-    # newHashMap.getKey("Ayesha")
+    result = newHashMap.getKey("Ayesha")
+    if result:
+        print(
+            f"Found key {result[0]} with the following corresponding value {result[-1]}"
+        )
     # newHashMap.containsValue("Khan")
     # newHashMap.getKey("Dobby")
     # newHashMap.getSize()
