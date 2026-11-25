@@ -4,7 +4,6 @@ from linkedlist import *
 class hashMap:
 
     def __init__(self, loadFactor, size, collisionHandlingMethod):
-        # self.initialCapacity = initialCapacity
         self.loadFactor = loadFactor
         self.initSize = size
         self.currentSize = 0
@@ -26,7 +25,6 @@ class hashMap:
     def addKeyValuePair(self, key, value):
         hashedValue = self.getFirstHashCode(key)
         bucket = self.hashtable[hashedValue]
-        # print("bucket", bucket.head)
         if self.collisionHandlingMethod == "SC":
             print("Checking if key exists in hashtable")
             if bucket.head == None:
@@ -50,13 +48,27 @@ class hashMap:
             self.resizeHashMap()
 
     def getKey(self, key):
+        hashedValue = self.getFirstHashCode(key)
+        result = []
+        bucket = self.hashtable[hashedValue]
+        if bucket.head is not None:
+            curr = bucket.head
+            while curr is not None:
+                if curr.key == key:
+                    result.append((curr.key, curr.value))
+                curr = curr.next
+        return result
+
+    def getValue(self, value):
+        result = []
         for bucket in self.hashtable:
             if bucket.head is not None:
                 curr = bucket.head
                 while curr is not None:
-                    if curr.key == key:
-                        return curr.key, curr.value
+                    if curr.value == value:
+                        result.append((curr.key, curr.value))
                     curr = curr.next
+        return result
 
     def checkForResizing(self):
         if self.currentSize / self.initSize >= self.loadFactor:
@@ -104,24 +116,33 @@ class hashMap:
             for bucket in self.hashtable:
                 if bucket.head is not None:
                     curr = bucket.head
-                    while curr.next is not None:
+                    while curr is not None:
                         print("curr.key", curr.key, "curr.value", curr.value)
                         curr = curr.next
 
         else:
             print("self.hashtable", self.hashtable)
 
-    def removeKey(self, key):
-        print("remove key called")
-        for idx in range(self.initSize):
-            if len(self.hashtable[idx]) != 0:
-                curr = self.hashtable[idx][0][0]
-                if curr == key:
-                    print("found", curr)
-                    self.hashtable.pop(idx)
-                    print("Removed key")
-                    break
-        print("Error: Key does not exist in the hashmap")
+    def removeKeyValuePair(self, key, value):
+        for bucket in self.hashtable:
+            if bucket.head is not None:
+                curr = bucket.head
+                prev = None
+                while curr is not None:
+                    if curr.key == key and curr.value == value:
+                        print("found", curr.key, prev)
+                        if prev is not None:
+                            prev.next = curr.next
+                        elif prev is None and curr.next:
+                            prev = curr.next
+                            bucket.head = prev
+                        else:
+                            bucket.head = None
+                        self.currentSize -= 1
+                        print("Deleted Key successfully")
+                        return
+                    prev = curr
+                    curr = curr.next
 
     def clear(self):
         self.hashtable = [[] for _ in range(self.initSize)]
@@ -150,15 +171,22 @@ def main():
     newHashMap.printHashMap()
     result = newHashMap.getKey("Ayesha")
     if result:
-        print(
-            f"Found key {result[0]} with the following corresponding value {result[-1]}"
-        )
-    # newHashMap.containsValue("Khan")
-    # newHashMap.getKey("Dobby")
-    # newHashMap.getSize()
-    # newHashMap.printHashMap()
-    # newHashMap.removeKey("Dobby")
-    # newHashMap.printHashMap()
+        print(f"Found the following keys that match the search")
+        for pair in result:
+            print(f"key {pair[0]} with the following corresponding value {pair[-1]}")
+    result = newHashMap.getValue("Smith")
+    if result:
+        print(f"Found the following values that match the search")
+        for pair in result:
+            print(f"value {pair[-1]} with the following corresponding key {pair[0]}")
+    size = newHashMap.getSize()
+    print("Current hashmap size is: ", size)
+
+    newHashMap.printHashMap()
+    newHashMap.removeKeyValuePair("Dobby", "Khan")
+    newHashMap.printHashMap()
+    size = newHashMap.getSize()
+    print("Current hashmap size is: ", size)
     # newHashMap.clear()
     # newHashMap.printHashMap()
 
