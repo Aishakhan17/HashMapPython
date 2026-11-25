@@ -15,6 +15,7 @@ class hashMap:
         else:
             self.hashtable = [[] for _ in range(self.initSize)]
 
+    # Methods for hashmap with Seperate Chaining
     def initializeLinkedListTable(self):
         self.hashtable = []
         for _ in range(self.initSize):
@@ -47,6 +48,7 @@ class hashMap:
             print("Load capacity exceeded, resizing hashmap, current hashmap is: ")
             self.resizeHashMap()
 
+    # Get methods for Hashmap
     def getKey(self, key):
         hashedValue = self.getFirstHashCode(key)
         result = []
@@ -70,6 +72,7 @@ class hashMap:
                     curr = curr.next
         return result
 
+    ##Methods to resize Hashmap
     def checkForResizing(self):
         if self.currentSize / self.initSize >= self.loadFactor:
             print("needs resizing")
@@ -107,6 +110,7 @@ class hashMap:
         print("Current hashmap size is: ", self.currentSize)
         return self.currentSize
 
+    # Hashing Methods
     def getFirstHashCode(self, key):
         hashedValue = hash(key) % self.initSize
         return hashedValue
@@ -119,6 +123,8 @@ class hashMap:
                     while curr is not None:
                         print("curr.key", curr.key, "curr.value", curr.value)
                         curr = curr.next
+                else:
+                    print("Empty Bucket", bucket)
 
         else:
             print("self.hashtable", self.hashtable)
@@ -145,9 +151,13 @@ class hashMap:
                     curr = curr.next
 
     def clear(self):
-        self.hashtable = [[] for _ in range(self.initSize)]
+        if self.collisionHandlingMethod == "SC":
+            self.initializeLinkedListTable()
+        else:
+            self.hashtable = [[] for _ in range(self.initSize)]
         self.currentSize = 0
-        print("Deleted hashmap")
+        self.printHashMap()
+        print("Deleted hashmap. Current size is", self.currentSize)
 
 
 def main():
@@ -187,8 +197,7 @@ def main():
     newHashMap.printHashMap()
     size = newHashMap.getSize()
     print("Current hashmap size is: ", size)
-    # newHashMap.clear()
-    # newHashMap.printHashMap()
+    newHashMap.clear()
 
 
 main()
